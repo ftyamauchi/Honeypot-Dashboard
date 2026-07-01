@@ -2,9 +2,7 @@
 
 Projeto acadêmico desenvolvido para as disciplinas de Programação para Redes e Laboratório de Programação.
 
-O objetivo do projeto é automatizar a implantação de uma honeypot SSH utilizando o Cowrie, processar os logs gerados utilizando Python e apresentar as informações em um painel web desenvolvido com Flask.
-
-Todo o ambiente é provisionado automaticamente utilizando Ansible, permitindo que qualquer pessoa reproduza o projeto com apenas um comando.
+O projeto utiliza Ansible para automatizar a implantação de uma honeypot SSH com Cowrie. Os logs gerados pelo Cowrie são lidos por um programa em Python e exibidos em um painel web simples feito com Flask.
 
 ---
 
@@ -13,50 +11,53 @@ Todo o ambiente é provisionado automaticamente utilizando Ansible, permitindo q
 - Fabio Yamauchi
 - Kaique Pinheiro
 
-Curso: Redes de Computadores
-
-Instituição: IFMT
-
----
-
-# Objetivos do projeto
-
-- Automatizar a instalação do ambiente utilizando Ansible.
-- Implantar automaticamente a honeypot Cowrie.
-- Coletar eventos de ataques SSH.
-- Processar os logs utilizando Python.
-- Exibir as informações em um Dashboard Web desenvolvido com Flask.
+Curso: Redes de Computadores  
+Instituição: Instituto Federal de Mato Grosso (IFMT)
 
 ---
 
-# Arquitetura do projeto
+# Objetivo do projeto
 
-```
-                Atacante
-                    │
-                    ▼
-              Cowrie Honeypot
-                    │
-                    ▼
-             cowrie.json (logs)
-                    │
-                    ▼
-              Python (parser)
-                    │
-                    ▼
-             Dashboard Flask
-                    │
-                    ▼
-          http://localhost:5000
+Demonstrar a integração entre:
+
+- Infraestrutura como Código com Ansible
+- Honeypot SSH com Cowrie
+- Processamento de logs com Python
+- Visualização dos dados em um painel Flask
+
+---
+
+# Arquitetura
+
+```text
+Atacante
+   |
+   v
+Cowrie Honeypot
+   |
+   v
+cowrie.json
+   |
+   v
+Python
+   |
+   v
+Flask Dashboard
+   |
+   v
+http://localhost:5000
 ```
 
 ---
 
 # Ambiente utilizado
 
+Projeto desenvolvido e testado em:
+
 | Componente | Versão |
-|------------|---------|
-| Sistema Operacional | Ubuntu 24.04.4 LTS (WSL2) |
+|---|---|
+| Sistema Operacional | Ubuntu 24.04.4 LTS |
+| Ambiente | WSL2 |
 | Python | 3.12.3 |
 | Ansible | Core 2.16.3 |
 | Git | 2.43.0 |
@@ -67,51 +68,63 @@ Instituição: IFMT
 
 # Estrutura do projeto
 
-```
-honeypot-dashboard/
+```text
+Honeypot-Dashboard/
 
 ├── ansible/
-│   └── site.yml
+│   ├── site.yml
+│   └── stop.yml
 │
+├── config/
+├── docs/
+├── logs/
 ├── monitor/
 │   └── app.py
 │
-├── logs/
-│
 ├── reports/
-│
 ├── services/
-│
 ├── README.md
-├── requirements.txt
 └── .gitignore
 ```
 
+Observação: a pasta `services/cowrie` não é enviada ao GitHub. Ela é criada automaticamente pelo Ansible durante a execução do projeto.
+
 ---
 
-# Instalação do ambiente
+# Pré-requisitos
 
-## 1. Instalar o WSL (Windows)
+Para executar o projeto do zero, recomenda-se utilizar:
 
-Abra o PowerShell como Administrador.
+- Windows com WSL2 instalado
+- Ubuntu 24.04 LTS no WSL
+- Conexão com a internet
+- Permissão de sudo no Ubuntu
+
+---
+
+# Instalação do WSL
+
+No Windows, abra o PowerShell como administrador e execute:
 
 ```powershell
 wsl --install
 ```
 
-Reinicie o computador quando solicitado.
+Após a instalação, reinicie o computador.
 
-Verifique a instalação:
+Verifique o WSL:
 
 ```powershell
 wsl --status
 ```
 
+Abra o Ubuntu pelo menu iniciar.
+
 ---
 
-## 2. Atualizar o Ubuntu
+# Atualizar o Ubuntu
 
-Abra o Ubuntu e execute:
+Dentro do Ubuntu/WSL, execute:
 
 ```bash
 sudo apt update
@@ -120,9 +133,9 @@ sudo apt upgrade -y
 
 ---
 
-## 3. Instalar as dependências iniciais
+# Instalar dependências iniciais
 
-O projeto utiliza Ansible para automatizar toda a instalação, porém algumas ferramentas precisam existir previamente.
+Antes de rodar o projeto, instale Git, Ansible e Python:
 
 ```bash
 sudo apt install git ansible python3 python3-pip python3-venv -y
@@ -130,13 +143,13 @@ sudo apt install git ansible python3 python3-pip python3-venv -y
 
 ---
 
-## 4. Clonar o projeto
+# Clonar o projeto
 
 ```bash
 git clone https://github.com/ftyamauchi/Honeypot-Dashboard.git
 ```
 
-Entre na pasta do projeto:
+Entre na pasta:
 
 ```bash
 cd Honeypot-Dashboard
@@ -144,76 +157,58 @@ cd Honeypot-Dashboard
 
 ---
 
-## 5. Executar o projeto
+# Iniciar o projeto
 
-Execute apenas um comando:
+Execute:
 
 ```bash
 ansible-playbook ansible/site.yml --ask-become-pass
 ```
 
-O Ansible será responsável por:
+Esse comando irá:
 
-- instalar dependências adicionais;
-- baixar automaticamente o Cowrie;
-- criar os ambientes virtuais;
-- instalar o Flask;
-- iniciar o Cowrie;
-- iniciar o Dashboard.
+- instalar dependências do sistema;
+- baixar o Cowrie automaticamente;
+- criar o ambiente virtual do Cowrie;
+- instalar o Cowrie;
+- iniciar a honeypot;
+- criar o ambiente virtual do painel;
+- instalar Flask;
+- iniciar o painel web.
 
----
+Após a execução, acesse:
 
-# Acessando o Dashboard
-
-Após a execução do playbook, abra:
-
-```
+```text
 http://localhost:5000
 ```
 
-A página é atualizada automaticamente a cada 3 segundos.
-
 ---
 
-# Funcionalidades
+# Testar a honeypot
 
-O Dashboard apresenta:
-
-- Status do Cowrie
-- Quantidade total de eventos registrados
-- IPs identificados
-- Usuários utilizados
-- Senhas testadas
-- Comandos executados
-- Última atividade registrada
-
----
-
-# Como testar
-
-Abra outro terminal e execute:
+Em outro terminal, execute:
 
 ```bash
 ssh root@localhost -p 2222
 ```
 
-No primeiro acesso confirme a chave:
+No primeiro acesso, o SSH pode perguntar se você confia na chave do servidor.
 
-```
+Digite:
+
+```text
 yes
 ```
 
-Utilize qualquer senha.
+Depois tente algumas senhas, por exemplo:
 
-Exemplos:
-
-```
+```text
 123456
 password
 admin
 ```
 
-Após autenticar, execute alguns comandos:
+Se o login for aceito, execute comandos como:
 
 ```bash
 ls
@@ -224,59 +219,64 @@ cat /etc/passwd
 exit
 ```
 
-Retorne ao Dashboard.
-
-Após alguns segundos os novos eventos aparecerão automaticamente.
+O painel será atualizado automaticamente a cada 3 segundos.
 
 ---
 
-# Problemas comuns
+# Erro de chave SSH
 
-## Erro de chave SSH
-
-Caso apareça uma mensagem informando que a chave do servidor mudou:
+Se aparecer um erro dizendo que a chave SSH mudou, execute:
 
 ```bash
 ssh-keygen -R "[localhost]:2222"
 ```
 
-Depois conecte novamente:
+Depois tente conectar novamente:
 
 ```bash
 ssh root@localhost -p 2222
 ```
 
----
-
-# Tecnologias utilizadas
-
-- Python
-- Flask
-- Ansible
-- Cowrie Honeypot
-- Git
-- GitHub
-- WSL2
-- Ubuntu Linux
+Esse erro acontece quando o cliente SSH já tinha uma chave antiga salva para `localhost:2222`.
 
 ---
 
-# Objetivo acadêmico
+# Encerrar o projeto
 
-Este projeto demonstra a utilização de Infraestrutura como Código (IaC) aplicada à Segurança da Informação.
+Para parar o Cowrie e o painel Flask, execute:
 
-Durante o desenvolvimento foram utilizados conceitos de:
-
-- Automação de infraestrutura
-- Honeypots
-- Monitoramento de eventos
-- Processamento de logs
-- Desenvolvimento Web
-- Ambientes virtuais Python
-- Controle de versão com Git
+```bash
+ansible-playbook ansible/stop.yml
+```
 
 ---
 
-# Licença
+# O que aparece no painel
+
+O painel mostra:
+
+- status do Cowrie;
+- total de eventos registrados;
+- IPs encontrados;
+- usuários utilizados;
+- senhas testadas;
+- comandos executados;
+- última atividade registrada.
+
+---
+
+# Observação sobre o IP 127.0.0.1
+
+Durante os testes locais, o IP exibido normalmente será:
+
+```text
+127.0.0.1
+```
+
+Esse IP representa o próprio computador local. Em um ambiente com outros dispositivos acessando a honeypot pela rede, o painel exibiria os IPs desses dispositivos.
+
+---
+
+# Finalidade
 
 Projeto desenvolvido exclusivamente para fins acadêmicos.

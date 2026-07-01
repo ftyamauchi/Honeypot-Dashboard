@@ -1,0 +1,26 @@
+---
+- name: Parar Cowrie e painel Flask
+  hosts: localhost
+  connection: local
+  become: false
+
+  vars:
+    project_dir: "{{ playbook_dir }}/.."
+    cowrie_dir: "{{ project_dir }}/services/cowrie"
+
+  tasks:
+    - name: Parar Cowrie
+      shell: |
+        export PATH="{{ cowrie_dir }}/cowrie-env/bin:$PATH"
+        cowrie stop || true
+      args:
+        chdir: "{{ cowrie_dir }}"
+      ignore_errors: true
+
+    - name: Parar painel Flask
+      shell: pkill -f "python.*monitor/app.py" || true
+      ignore_errors: true
+
+    - name: Informar finalizacao
+      debug:
+        msg: "Cowrie e painel Flask foram parados."
