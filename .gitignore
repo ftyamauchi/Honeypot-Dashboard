@@ -16,10 +16,7 @@ reports/
 # ----------------------------
 # Cowrie
 # ----------------------------
-services/cowrie/var/
-services/cowrie/share/cowrie/downloads/
-services/cowrie/etc/cowrie.cfg
-
+services/cowrie/
 # ----------------------------
 # Sistema Operacional
 # ----------------------------
