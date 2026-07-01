@@ -9,6 +9,12 @@
     cowrie_dir: "{{ project_dir }}/services/cowrie"
     monitor_dir: "{{ project_dir }}/monitor"
 
+    - name: Criar pasta de logs
+      file:
+        path: "{{ project_dir }}/logs"
+        state: directory
+        mode: "0755"
+
   tasks:
     - name: Instalar dependencias do sistema
       become: true
