@@ -1,0 +1,86 @@
+---
+- name: Subir Cowrie e painel Flask
+  hosts: localhost
+  connection: local
+  become: false
+
+  vars:
+    project_dir: "{{ playbook_dir }}/.."
+    cowrie_dir: "{{ project_dir }}/services/cowrie"
+    monitor_dir: "{{ project_dir }}/monitor"
+
+  tasks:
+    - name: Instalar dependencias do sistema
+      become: true
+      apt:
+        name:
+          - git
+          - python3
+          - python3-pip
+          - python3-venv
+          - python3-dev
+          - build-essential
+          - libssl-dev
+          - libffi-dev
+          - virtualenv
+        state: present
+        update_cache: true
+
+    - name: Baixar Cowrie
+      git:
+        repo: https://github.com/cowrie/cowrie.git
+        dest: "{{ cowrie_dir }}"
+        version: main
+        update: false
+
+    - name: Criar ambiente virtual do Cowrie
+      command: python3 -m venv "{{ cowrie_dir }}/cowrie-env"
+      args:
+        creates: "{{ cowrie_dir }}/cowrie-env"
+
+    - name: Instalar dependencias do Cowrie
+      pip:
+        requirements: "{{ cowrie_dir }}/requirements.txt"
+        virtualenv: "{{ cowrie_dir }}/cowrie-env"
+
+    - name: Instalar Cowrie no ambiente virtual
+      command: "{{ cowrie_dir }}/cowrie-env/bin/pip install -e ."
+      args:
+        chdir: "{{ cowrie_dir }}"
+
+    - name: Inicializar Cowrie
+      command: "{{ cowrie_dir }}/cowrie-env/bin/cowrie init"
+      args:
+        chdir: "{{ cowrie_dir }}"
+        creates: "{{ cowrie_dir }}/etc/cowrie.cfg"
+
+    - name: Parar Cowrie se ja estiver rodando
+      shell: |
+        export PATH="{{ cowrie_dir }}/cowrie-env/bin:$PATH"
+        cowrie stop || true
+      args:
+        chdir: "{{ cowrie_dir }}"
+
+    - name: Iniciar Cowrie
+      shell: |
+        export PATH="{{ cowrie_dir }}/cowrie-env/bin:$PATH"
+        cowrie start
+      args:
+        chdir: "{{ cowrie_dir }}"
+
+    - name: Criar ambiente virtual do monitor
+      command: python3 -m venv "{{ monitor_dir }}/venv"
+      args:
+        creates: "{{ monitor_dir }}/venv"
+
+    - name: Instalar Flask no monitor
+      pip:
+        name: flask
+        virtualenv: "{{ monitor_dir }}/venv"
+
+    - name: Parar painel Flask antigo
+      shell: pkill -f "python.*monitor/app.py" || true
+      ignore_errors: true
+
+    - name: Iniciar painel Flask
+      shell: nohup "{{ monitor_dir }}/venv/bin/python" "{{ monitor_dir }}/app.py" > "{{ project_dir }}/logs/monitor.log" 2>&1 &

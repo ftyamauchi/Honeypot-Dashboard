@@ -1,0 +1,27 @@
+# ----------------------------
+# Python
+# ----------------------------
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# ----------------------------
+# Logs e relatórios gerados
+# ----------------------------
+logs/
+reports/
+
+# ----------------------------
+# Cowrie
+# ----------------------------
+services/cowrie/var/
+services/cowrie/share/cowrie/downloads/
+services/cowrie/etc/cowrie.cfg
+
+# ----------------------------
+# Sistema Operacional
+# ----------------------------
+.DS_Store
+Thumbs.db
