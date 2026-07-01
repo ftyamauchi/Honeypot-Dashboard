@@ -1,5 +1,6 @@
 import json
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 from flask import Flask
@@ -31,11 +32,29 @@ def verificar_cowrie():
     return "🔴 Offline"
 
 
-def formatar_lista(lista):
-    if not lista:
+def formatar_data(timestamp):
+    if not timestamp:
         return "Nenhum registro"
 
-    return ", ".join(sorted(lista))
+    try:
+        data = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        return data.strftime("%d/%m/%Y %H:%M:%S")
+    except ValueError:
+        return timestamp
+
+
+def formatar_lista(valores):
+    if not valores:
+        return "<p>Nenhum registro.</p>"
+
+    html = "<ul>"
+
+    for valor in sorted(valores):
+        html += f"<li>{valor}</li>"
+
+    html += "</ul>"
+
+    return html
 
 
 def formatar_comandos(comandos):
@@ -108,31 +127,28 @@ def index():
     <h1>Honeypot Dashboard</h1>
 
     <p><b>Status do Cowrie:</b> {status}</p>
-
-    <p><b>Total de eventos:</b> {total_eventos}</p>
-
+    <p><b>Eventos registrados:</b> {total_eventos}</p>
     <p><b>IPs encontrados:</b> {len(dados)}</p>
-
-    <hr>
     """
 
     for ip, info in dados.items():
         conteudo += f"""
-        <h2>IP: {ip}</h2>
+        <div class="card">
+            <h2>IP: {ip}</h2>
 
-        <p><b>Eventos:</b> {info["eventos"]}</p>
+            <p><b>Eventos deste IP:</b> {info["eventos"]}</p>
 
-        <p><b>Usuários:</b> {formatar_lista(info["usuarios"])}</p>
+            <p><b>Usuários utilizados:</b></p>
+            {formatar_lista(info["usuarios"])}
 
-        <p><b>Senhas:</b> {formatar_lista(info["senhas"])}</p>
+            <p><b>Senhas testadas:</b></p>
+            {formatar_lista(info["senhas"])}
 
-        <p><b>Comandos:</b></p>
+            <p><b>Comandos executados:</b></p>
+            {formatar_comandos(info["comandos"])}
 
-        {formatar_comandos(info["comandos"])}
-
-        <p><b>Última atividade:</b> {info["ultima_atividade"]}</p>
-
-        <hr>
+            <p><b>Última atividade:</b> {formatar_data(info["ultima_atividade"])}</p>
+        </div>
         """
 
     return f"""
@@ -140,7 +156,32 @@ def index():
     <head>
         <title>Honeypot Dashboard</title>
         <meta http-equiv="refresh" content="3">
+
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                margin: 30px;
+                background-color: #f5f5f5;
+            }}
+
+            h1 {{
+                margin-bottom: 20px;
+            }}
+
+            .card {{
+                background-color: white;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                padding: 15px;
+                margin-top: 20px;
+            }}
+
+            ul {{
+                margin-top: 5px;
+            }}
+        </style>
     </head>
+
     <body>
         {conteudo}
     </body>
